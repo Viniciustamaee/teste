@@ -1,4 +1,3 @@
-// screens/calendar_screen.dart
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../models/task.dart';
@@ -53,14 +52,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             });
           },
           calendarFormat: CalendarFormat.month,
-          headerStyle: HeaderStyle(
+          headerStyle: const HeaderStyle(
             formatButtonVisible: false,
             titleCentered: true,
           ),
         ),
         Expanded(
           child: _selectedDay == null
-              ? Center(child: Text('Selecione um dia no calendário'))
+              ? const Center(child: Text('Selecione um dia no calendário'))
               : _buildTaskList(_selectedDay!),
         )
       ],
@@ -71,17 +70,95 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final tasks = _getTasksForDay(day);
 
     if (tasks.isEmpty) {
-      return Center(child: Text('Nenhuma tarefa para esse dia'));
+      return const Center(child: Text('Nenhuma tarefa para esse dia'));
     }
 
     return ListView.builder(
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        return ListTile(
-          title: Text(task.titulo),
-          subtitle: Text(task.descricao),
-          trailing: Text(task.prioridade),
+
+        Color? badgeColor;
+        switch (task.prioridade) {
+          case 'Alta':
+            badgeColor = Colors.red[200];
+            break;
+          case 'Média':
+            badgeColor = Colors.yellow[200];
+            break;
+          case 'Baixa':
+            badgeColor = Colors.green[200];
+            break;
+          default:
+            badgeColor = Colors.grey[300];
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 238, 234, 234),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromARGB(31, 20, 24, 211),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Infos da tarefa
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        task.titulo,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        task.descricao,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Badge de prioridade
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    task.prioridade,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
