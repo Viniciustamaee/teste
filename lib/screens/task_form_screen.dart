@@ -101,8 +101,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                 items: const [
                   DropdownMenuItem(value: 'Pendente', child: Text('Pendente')),
                   DropdownMenuItem(
-                    value: 'Em andamento',
-                    child: Text('Em andamento'),
+                    value: 'Em Andamento',
+                    child: Text('Em Andamento'),
                   ),
                   DropdownMenuItem(
                     value: 'Concluído',

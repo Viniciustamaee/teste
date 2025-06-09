@@ -43,6 +43,32 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  // void _addOrUpdateTask(Task task) async {
+  //   final db = DatabaseHelper.instance;
+  //   final index = _tarefas.indexWhere((t) => t.id == task.id);
+
+  //   if (index == -1) {
+  //     final id = await db.insertTask(task);
+  //     setState(() {
+  //       _tarefas.add(
+  //         Task(
+  //           id: id,
+  //           titulo: task.titulo,
+  //           descricao: task.descricao,
+  //           data: task.data,
+  //           prioridade: task.prioridade,
+  //           status: task.status,
+  //         ),
+  //       );
+  //     });
+  //   } else {
+  //     await db.updateTask(task);
+  //     setState(() {
+  //       _tarefas[index] = task;
+  //     });
+  //   }
+  // }
+
   void _addOrUpdateTask(Task task) async {
     final db = DatabaseHelper.instance;
     final index = _tarefas.indexWhere((t) => t.id == task.id);
@@ -72,7 +98,7 @@ class _MyAppState extends State<MyApp> {
   void _deleteTask(Task task) async {
     final int? id = task.id;
     if (id == null) {
-      debugPrint('Erro: task.id não é um número válido -> ${task.id}');
+      debugPrint('Erro: não foi possível concluir a ação -> ${task.id}');
       return;
     }
 

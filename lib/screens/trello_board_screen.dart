@@ -36,8 +36,32 @@ class _TrelloBoardScreenState extends State<TrelloBoardScreen> {
     }
   }
 
+  // List<Task> getTasksByStatus(String status) {
+  //   final resultado =
+  //       _tarefasInternas
+  //           .where((task) => task.status.toLowerCase() == status.toLowerCase())
+  //           .toList();
+
+  //   debugPrint(resultado.toString());
+  //   return resultado;
+  // }
+
   List<Task> getTasksByStatus(String status) {
-    return _tarefasInternas.where((task) => task.status == status).toList();
+    final resultado =
+        _tarefasInternas.where((task) {
+          // Normaliza ambos os lados para comparação (remove espaços e coloca em minúsculo)
+          final taskStatus = task.status.trim().toLowerCase().replaceAll(
+            ' ',
+            '',
+          );
+          final statusAlvo = status.trim().toLowerCase().replaceAll(' ', '');
+          final isMatch = taskStatus == statusAlvo;
+
+          debugPrint('Comparando: "$taskStatus" == "$statusAlvo" → $isMatch');
+          return isMatch;
+        }).toList();
+
+    return resultado;
   }
 
   Color? getPriorityColor(String prioridade) {
@@ -59,7 +83,7 @@ class _TrelloBoardScreenState extends State<TrelloBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final statusList = ['Pendente', 'Em andamento', 'Concluído'];
+    final statusList = ['Pendente', 'Em Andamento', 'Concluído'];
 
     return LayoutBuilder(
       builder: (context, constraints) {
