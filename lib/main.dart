@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:myapp/database/database.dart';
 import 'package:myapp/service/notification_service.dart';
 
-
 import 'models/task.dart';
 import 'screens/trello_board_screen.dart';
 import 'screens/task_form_screen.dart';
@@ -28,58 +27,89 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final List<Task> _tarefas = [];
   bool _isAuthenticated = false;
+  int _selectedIndex = 0;
 
-  void _addOrUpdateTask(Task task) {
+  @override
+  void initState() {
+    super.initState();
+    _loadTasksFromDb();
+  }
+
+  Future<void> _loadTasksFromDb() async {
+    final tasksFromDb = await DatabaseHelper.instance.getAllTasks();
     setState(() {
-      final index = _tarefas.indexWhere((t) => t.id == task.id);
-      if (index == -1) {
-        _tarefas.add(task);
-      } else {
-        _tarefas[index] = task;
-      }
+      _tarefas.clear();
+      _tarefas.addAll(tasksFromDb);
     });
   }
 
-  void _deleteTask(Task task) {
+  void _addOrUpdateTask(Task task) async {
+    final db = DatabaseHelper.instance;
+    final index = _tarefas.indexWhere((t) => t.id == task.id);
+
+    if (index == -1) {
+      final id = await db.insertTask(task);
+      setState(() {
+        _tarefas.add(
+          Task(
+            id: id,
+            titulo: task.titulo,
+            descricao: task.descricao,
+            data: task.data,
+            prioridade: task.prioridade,
+            status: task.status,
+          ),
+        );
+      });
+    } else {
+      await db.updateTask(task);
+      setState(() {
+        _tarefas[index] = task;
+      });
+    }
+  }
+
+  void _deleteTask(Task task) async {
+    final int? id = task.id;
+    if (id == null) {
+      debugPrint('Erro: task.id não é um número válido -> ${task.id}');
+      return;
+    }
+
+    await DatabaseHelper.instance.deleteTask(id);
+
     setState(() {
       _tarefas.removeWhere((t) => t.id == task.id);
     });
   }
 
   void _handleLogin(String email, String senha, bool isLogin) {
-    // Simulação simples de autenticação
     setState(() {
       _isAuthenticated = true;
     });
   }
 
-  int _selectedIndex = 0;
-
   List<Widget> get _screens => [
-        TrelloBoardScreen(
-          tarefas: _tarefas,
-          onEdit: (task) async {
-            final editedTask = await Navigator.push<Task>(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TaskFormScreen(task: task),
-              ),
-            );
-            if (editedTask != null) {
-              _addOrUpdateTask(editedTask);
-            }
-          },
-          onDelete: _deleteTask,
-        ),
-        CalendarScreen(tarefas: _tarefas),
-      ];
+    TrelloBoardScreen(
+      tarefas: _tarefas,
+      onEdit: (task) async {
+        final editedTask = await Navigator.push<Task>(
+          context,
+          MaterialPageRoute(builder: (_) => TaskFormScreen(task: task)),
+        );
+        if (editedTask != null) {
+          _addOrUpdateTask(editedTask);
+        }
+      },
+      onDelete: _deleteTask,
+    ),
+    CalendarScreen(tarefas: _tarefas),
+  ];
 
   @override
   Widget build(BuildContext context) {
     if (!_isAuthenticated) {
-      return MaterialApp(
-        home: LoginScreen(onSubmit: _handleLogin),
-      );
+      return MaterialApp(home: LoginScreen(onSubmit: _handleLogin));
     }
 
     return MaterialApp(
@@ -91,18 +121,21 @@ class _MyAppState extends State<MyApp> {
           actions: [
             if (_selectedIndex == 0)
               Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () async {
-                    final newTask = await Navigator.push<Task>(
-                      context,
-                      MaterialPageRoute(builder: (_) => const TaskFormScreen()),
-                    );
-                    if (newTask != null) {
-                      _addOrUpdateTask(newTask);
-                    }
-                  },
-                ),
+                builder:
+                    (context) => IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () async {
+                        final newTask = await Navigator.push<Task>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TaskFormScreen(),
+                          ),
+                        );
+                        if (newTask != null) {
+                          _addOrUpdateTask(newTask);
+                        }
+                      },
+                    ),
               ),
           ],
         ),
@@ -111,8 +144,14 @@ class _MyAppState extends State<MyApp> {
           currentIndex: _selectedIndex,
           onTap: (i) => setState(() => _selectedIndex = i),
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.view_kanban), label: 'Trello'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendário'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.view_kanban),
+              label: 'Trello',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today),
+              label: 'Calendário',
+            ),
           ],
         ),
       ),

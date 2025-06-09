@@ -1,5 +1,5 @@
 class Task {
-  final String id; // Atenção: você está usando String, mas no banco é INTEGER PRIMARY KEY
+  final int? id;
   String titulo;
   String descricao;
   DateTime data;
@@ -7,7 +7,7 @@ class Task {
   String status;
 
   Task({
-    required this.id,
+    this.id,
     required this.titulo,
     required this.descricao,
     required this.data,
@@ -15,25 +15,32 @@ class Task {
     required this.status,
   });
 
+  int? get idInt => id == null ? null : id;
+
   factory Task.fromMap(Map<String, dynamic> map) {
     return Task(
-      id: map['id_tarefa'].toString(), // Convertendo o int do banco para String
+      id: map['id_tarefa'],
       titulo: map['titulo'],
       descricao: map['descricao'],
-      data: DateTime.parse(map['data_entrega']), // ISO8601
+      data: DateTime.parse(map['data_entrega']),
       prioridade: map['prioridade'],
       status: map['status'],
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id_tarefa': int.tryParse(id), // Convertendo de volta para int no banco
+  Map<String, dynamic> toMap({bool includeId = false}) {
+    final map = {
       'titulo': titulo,
       'descricao': descricao,
       'data_entrega': data.toIso8601String(),
       'prioridade': prioridade,
       'status': status,
     };
+
+    if (includeId && id != null) {
+      map['id_tarefa'] = id!.toString();
+    }
+
+    return map;
   }
 }

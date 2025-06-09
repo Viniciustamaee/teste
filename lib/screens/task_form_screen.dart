@@ -1,56 +1,44 @@
-// screens/task_form_screen.dart
 import 'package:flutter/material.dart';
 import '../models/task.dart';
 
 class TaskFormScreen extends StatefulWidget {
   final Task? task;
-
   const TaskFormScreen({super.key, this.task});
-
   @override
   State<TaskFormScreen> createState() => _TaskFormScreenState();
 }
 
 class _TaskFormScreenState extends State<TaskFormScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  late String _titulo;
-  late String _descricao;
+  late String _titulo, _descricao, _prioridade, _status;
   late DateTime _data;
-  late String _prioridade;
-  late String _status;
 
   @override
   void initState() {
     super.initState();
-    final task = widget.task;
-    _titulo = task?.titulo ?? '';
-    _descricao = task?.descricao ?? '';
-    _data = task?.data ?? DateTime.now();
-    _prioridade = task?.prioridade ?? 'Baixa';
-    _status = task?.status ?? 'Pendente';
+    final t = widget.task;
+    _titulo = t?.titulo ?? '';
+    _descricao = t?.descricao ?? '';
+    _data = t?.data ?? DateTime.now();
+    _prioridade = t?.prioridade ?? 'Baixa';
+    _status = t?.status ?? 'Pendente';
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+    var picked = await showDatePicker(
       context: context,
       initialDate: _data,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      lastDate: DateTime(2100),
     );
-    if (picked != null && picked != _data) {
-      setState(() {
-        _data = picked;
-      });
-    }
+    if (picked != null) setState(() => _data = picked);
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
-    final id = widget.task?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
     final task = Task(
-      id: id,
+      id: widget.task?.id,
       titulo: _titulo,
       descricao: _descricao,
       data: _data,
@@ -61,7 +49,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext ctx) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.task == null ? 'Nova Tarefa' : 'Editar Tarefa'),
@@ -75,25 +63,20 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               TextFormField(
                 initialValue: _titulo,
                 decoration: const InputDecoration(labelText: 'Título'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Informe o título';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _titulo = value ?? '',
+                validator: (v) => v!.isEmpty ? 'Informe o título' : null,
+                onSaved: (v) => _titulo = v!,
               ),
               TextFormField(
                 initialValue: _descricao,
                 decoration: const InputDecoration(labelText: 'Descrição'),
                 maxLines: 3,
-                onSaved: (value) => _descricao = value ?? '',
+                onSaved: (v) => _descricao = v!,
               ),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Text('Data: ${_data.toLocal().toString().split(' ')[0]}'),
-                  const SizedBox(width: 20),
+                  Text('Data: ${_data.toString().split(' ')[0]}'),
+                  const SizedBox(width: 16),
                   ElevatedButton(
                     onPressed: _selectDate,
                     child: const Text('Selecionar data'),
@@ -109,25 +92,28 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                   DropdownMenuItem(value: 'Média', child: Text('Média')),
                   DropdownMenuItem(value: 'Baixa', child: Text('Baixa')),
                 ],
-                onChanged: (value) => setState(() => _prioridade = value ?? 'Baixa'),
-                onSaved: (value) => _prioridade = value ?? 'Baixa',
+                onChanged: (v) => setState(() => _prioridade = v!),
+                onSaved: (v) => _prioridade = v!,
               ),
               DropdownButtonFormField<String>(
                 value: _status,
                 decoration: const InputDecoration(labelText: 'Status'),
                 items: const [
                   DropdownMenuItem(value: 'Pendente', child: Text('Pendente')),
-                  DropdownMenuItem(value: 'Em andamento', child: Text('Em andamento')),
-                  DropdownMenuItem(value: 'Concluído', child: Text('Concluído')),
+                  DropdownMenuItem(
+                    value: 'Em andamento',
+                    child: Text('Em andamento'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Concluído',
+                    child: Text('Concluído'),
+                  ),
                 ],
-                onChanged: (value) => setState(() => _status = value ?? 'Pendente'),
-                onSaved: (value) => _status = value ?? 'Pendente',
+                onChanged: (v) => setState(() => _status = v!),
+                onSaved: (v) => _status = v!,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submit,
-                child: const Text('Salvar'),
-              ),
+              ElevatedButton(onPressed: _submit, child: const Text('Salvar')),
             ],
           ),
         ),

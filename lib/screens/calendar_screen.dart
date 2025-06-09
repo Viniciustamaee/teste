@@ -58,10 +58,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
         Expanded(
-          child: _selectedDay == null
-              ? const Center(child: Text('Selecione um dia no calendário'))
-              : _buildTaskList(_selectedDay!),
-        )
+          child:
+              _selectedDay == null
+                  ? const Center(child: Text('Selecione um dia no calendário'))
+                  : _buildTaskList(_selectedDay!),
+        ),
       ],
     );
   }
@@ -143,7 +144,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 // Badge de prioridade
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeColor,
                     borderRadius: BorderRadius.circular(20),

@@ -18,8 +18,26 @@ class TrelloBoardScreen extends StatefulWidget {
 }
 
 class _TrelloBoardScreenState extends State<TrelloBoardScreen> {
+  late List<Task> _tarefasInternas;
+
+  @override
+  void initState() {
+    super.initState();
+    _tarefasInternas = widget.tarefas;
+  }
+
+  @override
+  void didUpdateWidget(covariant TrelloBoardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tarefas != widget.tarefas) {
+      setState(() {
+        _tarefasInternas = widget.tarefas;
+      });
+    }
+  }
+
   List<Task> getTasksByStatus(String status) {
-    return widget.tarefas.where((task) => task.status == status).toList();
+    return _tarefasInternas.where((task) => task.status == status).toList();
   }
 
   Color? getPriorityColor(String prioridade) {
@@ -46,114 +64,115 @@ class _TrelloBoardScreenState extends State<TrelloBoardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Row(
-          children: statusList.map((status) {
-            final tasks = getTasksByStatus(status);
-            return Expanded(
-              child: Container(
-                height: constraints.maxHeight,
-                padding: const EdgeInsets.all(8),
-                color: Colors.grey[100],
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      status,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: tasks.isEmpty
-                          ? const Text('Sem tarefas')
-                          : ListView.builder(
-                              itemCount: tasks.length,
-                              itemBuilder: (context, index) {
-                                final task = tasks[index];
-                                return Card(
-                                  elevation: 2,
-                                  margin: const EdgeInsets.symmetric(vertical: 4),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        // Título com ellipsis
-                                        Text(
-                                          task.titulo,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          softWrap: false,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+          children:
+              statusList.map((status) {
+                final tasks = getTasksByStatus(status);
+                return Expanded(
+                  child: Container(
+                    height: constraints.maxHeight,
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.grey[100],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          status,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Expanded(
+                          child:
+                              tasks.isEmpty
+                                  ? const Text('Sem tarefas')
+                                  : ListView.builder(
+                                    itemCount: tasks.length,
+                                    itemBuilder: (context, index) {
+                                      final task = tasks[index];
+                                      return Card(
+                                        elevation: 2,
+                                        margin: const EdgeInsets.symmetric(
+                                          vertical: 4,
                                         ),
-                                        const SizedBox(height: 6),
-
-                                        // Data
-                                        Text(
-                                          'Data: ${_formatDate(task.data)}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-
-                                        // Prioridade
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: getPriorityColor(task.prioridade),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            task.prioridade,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-
-                                        // Menu de ações
-                                        Align(
-                                          alignment: Alignment.topRight,
-                                          child: PopupMenuButton<String>(
-                                            onSelected: (value) {
-                                              if (value == 'editar') {
-                                                widget.onEdit(task);
-                                              } else if (value == 'excluir') {
-                                                widget.onDelete(task);
-                                              }
-                                            },
-                                            itemBuilder: (context) => const [
-                                              PopupMenuItem(
-                                                  value: 'editar',
-                                                  child: Text('Editar')),
-                                              PopupMenuItem(
-                                                  value: 'excluir',
-                                                  child: Text('Excluir')),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                task.titulo,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                softWrap: false,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                'Data: ${_formatDate(task.data)}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: getPriorityColor(
+                                                    task.prioridade,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  task.prioridade,
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.topRight,
+                                                child: PopupMenuButton<String>(
+                                                  onSelected: (value) {
+                                                    if (value == 'excluir') {
+                                                      widget.onDelete(task);
+                                                    }
+                                                  },
+                                                  itemBuilder:
+                                                      (context) => const [
+                                                        PopupMenuItem(
+                                                          value: 'excluir',
+                                                          child: Text(
+                                                            'Excluir',
+                                                          ),
+                                                        ),
+                                                      ],
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
+                  ),
+                );
+              }).toList(),
         );
       },
     );

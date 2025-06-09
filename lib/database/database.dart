@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import '../models/task.dart'; // Certifique-se de importar o modelo Task aqui!
+import '../models/task.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -35,7 +35,7 @@ class DatabaseHelper {
       CREATE TABLE categoria (
         id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
-        id_usuario INTEGER NOT NULL,
+        id_usuario INTEGER ,
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
       );
     ''');
@@ -48,7 +48,7 @@ class DatabaseHelper {
         data_entrega TEXT NOT NULL,
         prioridade TEXT CHECK (prioridade IN ('Alta', 'Média', 'Baixa')) NOT NULL,
         status TEXT CHECK (status IN ('Pendente', 'Em Andamento', 'Concluído')) NOT NULL DEFAULT 'Pendente',
-        id_usuario INTEGER NOT NULL,
+        id_usuario INTEGER,
         id_categoria INTEGER,
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
         FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
@@ -73,10 +73,77 @@ class DatabaseHelper {
     ''');
   }
 
-  // 🔥 Aqui você adiciona o método getAllTasks:
   Future<List<Task>> getAllTasks() async {
     final db = await database;
     final maps = await db.query('tarefa');
     return maps.map((map) => Task.fromMap(map)).toList();
+  }
+
+  Future<int> insertTask(Task task) async {
+    final db = await database;
+    final data = task.toMap();
+
+    data['id_usuario'] = '1';
+
+    final result = await db.insert(
+      'tarefa',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    return result;
+  }
+
+  Future<Task?> getTaskById(String id) async {
+    final db = await database;
+    final intId = int.tryParse(id);
+    if (intId == null) return null;
+    final maps = await db.query(
+      'tarefa',
+      where: 'id_tarefa = ?',
+      whereArgs: [intId],
+    );
+    if (maps.isNotEmpty) {
+      return Task.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<int> updateTask(Task task) async {
+    final db = await database;
+    final intId = task.id;
+    if (intId == null) {
+      throw Exception('ID inválido para atualização');
+    }
+    return await db.update(
+      'tarefa',
+      task.toMap(includeId: false),
+      where: 'id_tarefa = ?',
+      whereArgs: [intId],
+    );
+  }
+
+  Future<int> deleteTask(int id) async {
+    final db = await database;
+    return await db.delete('tarefa', where: 'id_tarefa = ?', whereArgs: [id]);
+  }
+
+  Future<bool> login(String email, String senha) async {
+    final db = await database;
+
+    final mockEmail = 'teste@email.com';
+    final mockSenha = '123';
+
+    if (email != mockEmail || senha != mockSenha) {
+      return false;
+    }
+
+    final maps = await db.query(
+      'usuario',
+      where: 'email = ? AND senha = ?',
+      whereArgs: [email, senha],
+    );
+
+    return maps.isNotEmpty;
   }
 }
